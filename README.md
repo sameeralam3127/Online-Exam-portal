@@ -1,5 +1,3 @@
-Certainly! Below is the complete `README.md` file, now including a section with the SQL script to create the necessary database and tables for your Online Exam Portal.
-
 ### Complete `README.md` with SQL Script
 
 ```markdown
