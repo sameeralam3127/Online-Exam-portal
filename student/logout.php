@@ -14,7 +14,7 @@ if (isset($_SESSION['user_id'])) {
     exit();
 } else {
     // If the user is not logged in, redirect to login page
-    header("Location: login.php");
+    header("Location: student/login.php");
     exit();
 }
 ?>

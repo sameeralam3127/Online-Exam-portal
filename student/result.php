@@ -4,7 +4,7 @@ include 'db.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: student/login.php");
     exit();
 }
 
@@ -37,7 +37,7 @@ $user_id = $_SESSION['user_id'];
         echo "<p>No results available.</p>";
     }
     ?>
-    <a href="dashboard.php" class="btn btn-secondary">Back to Dashboard</a>
+    <a href="student/dashboard.php" class="btn btn-secondary">Back to Dashboard</a>
 </div>
 </body>
 </html>
