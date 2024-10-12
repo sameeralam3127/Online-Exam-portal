@@ -1,0 +1,7 @@
+# Ignore XAMPP files and folders
+xampp/
+*.log
+*.tmp
+*.cache
+*.bak
+.DS_Store
