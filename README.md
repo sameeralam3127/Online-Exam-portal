@@ -1,3 +1,7 @@
+Here’s an improved version of your README file for the Online Exam Portal, including instructions on generating a hashed password and how to access the `hash_password.php` file. The modifications enhance clarity and detail, making it easier for users to clone and run the project successfully.
+
+---
+
 # Online Exam Portal
 
 Welcome to the Online Exam Portal! This web application allows students to register, take exams, and view their results. Administrators can manage questions and view student records.
@@ -89,10 +93,17 @@ git clone https://github.com/sameeralam3127/Online-Exam-portal.git
    );
 
    INSERT INTO users (username, password, role) VALUES
-   ('admin', '$2y$10$i7frtUg4fq8CX1OTL4FNN.rUl7agQ25TOc5duPD7hkw08JZBSsORK', 'admin');
+   ('admin', 'YOUR_HASHED_PASSWORD', 'admin'); -- Use the hashed password generated below
    ```
 
-3. **Configure Database Connection**:
+3. **Generate a Hashed Password**:
+   - You can generate a hashed password using the `hash_password.php` file provided in the project. To do this, navigate to the following URL in your web browser:
+     ```
+     http://localhost/online-exam-portal/student/hash_password.php
+     ```
+   - This file will display a hashed password that you can use in the SQL script above. Copy the generated password and replace `YOUR_HASHED_PASSWORD` in the SQL script with the hashed value.
+
+4. **Configure Database Connection**:
    - Open the `db.php` file located in your project directory.
    - Update the database connection settings if needed (usually no changes are necessary):
      ```php
@@ -102,7 +113,7 @@ git clone https://github.com/sameeralam3127/Online-Exam-portal.git
      $dbname = "online_exam_portal_db";
      ```
 
-4. **Access the Application**:
+5. **Access the Application**:
    - Start the Apache server using the XAMPP control panel.
    - In your web browser, navigate to:
      ```
@@ -146,3 +157,4 @@ Contributions are welcome! If you have suggestions or improvements, please fork 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+---
