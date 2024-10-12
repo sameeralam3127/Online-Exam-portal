@@ -79,7 +79,7 @@ git clone https://github.com/sameeralam3127/Online-Exam-portal.git
        FOREIGN KEY (user_id) REFERENCES users(id)
    );
 
-   CREATE TABLE student_results (
+   CREATE TABLE results (
        id INT AUTO_INCREMENT PRIMARY KEY,
        exam_id INT NOT NULL,
        question_id INT NOT NULL,

@@ -2,7 +2,6 @@
 session_start();
 include('../student/db.php'); 
 
-
 // Check if the admin is logged in
 if (!isset($_SESSION['admin_logged_in'])) {
     header("Location: admin_login.php");
@@ -44,7 +43,6 @@ if (isset($_POST['export'])) {
     fclose($output);
     exit(); // Stop further execution
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -56,6 +54,22 @@ if (isset($_POST['export'])) {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Admin Dashboard</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="manage_questions.php">Manage Questions</a></li>
+            <li class="nav-item"><a class="nav-link" href="view_records.php">View Student Results</a></li>
+            <li class="nav-item"><a class="nav-link" href="reset_student_password.php">Reset Student Password</a></li>
+        </ul>
+        <a href="admin_logout.php" class="btn btn-outline-danger my-2 my-sm-0">Logout</a>
+    </div>
+</nav>
+
 <div class="container mt-5">
     <h2>Student Results</h2>
     <form method="POST" action="">
@@ -89,8 +103,10 @@ if (isset($_POST['export'])) {
             <?php endif; ?>
         </tbody>
     </table>
-    <a href="admin_dashboard.php" class="btn btn-secondary mt-3">Back to Dashboard</a>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
