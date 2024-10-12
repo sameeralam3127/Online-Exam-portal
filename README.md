@@ -1,7 +1,3 @@
-Here’s an improved version of your README file for the Online Exam Portal, including instructions on generating a hashed password and how to access the `hash_password.php` file. The modifications enhance clarity and detail, making it easier for users to clone and run the project successfully.
-
----
-
 # Online Exam Portal
 
 Welcome to the Online Exam Portal! This web application allows students to register, take exams, and view their results. Administrators can manage questions and view student records.
