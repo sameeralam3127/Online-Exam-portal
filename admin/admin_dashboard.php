@@ -1,7 +1,6 @@
 <?php
 session_start();
-include('../student/db.php'); // Adjust path based on actual location
-
+include('../student/db.php');
 
 // Enable error reporting for debugging
 error_reporting(E_ALL);
@@ -36,6 +35,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_exam'])) {
 // Fetch exams for displaying
 $sql = "SELECT * FROM exams";
 $exams = $conn->query($sql);
+
+// Fetch statistics
+$user_count = $conn->query("SELECT COUNT(*) AS count FROM users")->fetch_assoc()['count'];
+$exam_count = $conn->query("SELECT COUNT(*) AS count FROM exams")->fetch_assoc()['count'];
+$result_count = $conn->query("SELECT COUNT(*) AS count FROM results")->fetch_assoc()['count'];
+
+// Fetch average score per exam (subject)
+$score_data = [];
+$score_query = "SELECT e.title, AVG(r.score) AS avg_score 
+                FROM exams e 
+                LEFT JOIN results r ON e.id = r.exam_id 
+                GROUP BY e.id, e.title";
+$score_results = $conn->query($score_query);
+while ($row = $score_results->fetch_assoc()) {
+    $score_data[] = [
+        'title' => $row['title'],
+        'avg_score' => round($row['avg_score'], 2)
+    ];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -45,6 +64,10 @@ $exams = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .card { margin-bottom: 20px; }
+    </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -63,8 +86,43 @@ $exams = $conn->query($sql);
 <div class="container mt-5">
     <h2>Admin Dashboard</h2>
 
+    <!-- Dashboard Cards -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <p class="card-text"><?php echo $user_count; ?></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Total Exams</h5>
+                    <p class="card-text"><?php echo $exam_count; ?></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Total Results</h5>
+                    <p class="card-text"><?php echo $result_count; ?></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart for Subject-Wise Scores -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <canvas id="subjectScoreChart"></canvas>
+        </div>
+    </div>
+
     <!-- Form to Add New Exam -->
-    <h3>Add New Exam</h3>
+    <h3 class="mt-5">Add New Exam</h3>
     <form method="POST" action="">
         <div class="form-group">
             <label for="title">Exam Title:</label>
@@ -81,7 +139,7 @@ $exams = $conn->query($sql);
 
     <!-- Display Existing Exams -->
     <h3>Existing Exams</h3>
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>ID</th>
@@ -107,6 +165,38 @@ $exams = $conn->query($sql);
     </table>
 </div>
 
+<script>
+    // Subject-wise average scores from PHP
+    const subjectScores = <?php echo json_encode($score_data); ?>;
+    const labels = subjectScores.map(item => item.title);
+    const data = subjectScores.map(item => item.avg_score);
+
+    // Render the chart using Chart.js
+    const ctx = document.getElementById('subjectScoreChart').getContext('2d');
+    const subjectScoreChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Average Score',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
