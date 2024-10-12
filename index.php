@@ -101,7 +101,7 @@ include 'student/db.php';
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Feedback</a>
+                    <a class="nav-link" href="/online-exam-portal/admin/admin_login.php">Feedback</a>
                 </li>
             </ul>
         </div>
