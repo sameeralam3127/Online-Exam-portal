@@ -1,6 +1,7 @@
 <?php
 session_start();
-include '../db.php';
+include('../student/db.php'); 
+
 
 // Check if the admin is logged in
 if (!isset($_SESSION['admin_logged_in'])) {

@@ -1,6 +1,7 @@
 <?php
 session_start();
-include '../db.php';
+include('../student/db.php'); // Adjust path based on actual location
+
 
 // Enable error reporting for debugging
 error_reporting(E_ALL);

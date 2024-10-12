@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php';
+include 'student/db.php';
 ?>
 
 <!DOCTYPE html>
@@ -34,8 +34,8 @@ include 'db.php';
     <div class="container">
         <h1>Welcome to the Online Exam Portal</h1>
         <p>Your gateway to knowledge and assessment!</p>
-        <a href="register.php" class="btn btn-light btn-lg">Register</a>
-        <a href="login.php" class="btn btn-light btn-lg">Login</a>
+        <a href="student/register.php" class="btn btn-light btn-lg">Register</a>
+        <a href="student/login.php" class="btn btn-light btn-lg">Login</a>
     </div>
 </div>
 

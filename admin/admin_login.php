@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../db.php'); // Ensure the path to your db.php is correct
+include('../student/db.php'); // Ensure the path to your db.php is correct
 
 // Check if the admin is already logged in
 if (isset($_SESSION['admin_logged_in'])) {
