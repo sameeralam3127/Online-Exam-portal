@@ -26,16 +26,19 @@ if (isset($_GET['id'])) {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            background-color: #f8f9fa; /* Light background for better contrast */
+            background-color: #f0f2f5; /* Slightly darker background for better contrast */
         }
         .container {
-            background: white; /* White background for the form */
-            padding: 30px; /* Add padding for a better layout */
-            border-radius: 8px; /* Rounded corners */
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            background: #ffffff; /* White background for the form */
+            padding: 40px; /* Increased padding for a more spacious layout */
+            border-radius: 10px; /* More rounded corners */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Enhanced shadow for depth */
         }
         .navbar {
-            margin-bottom: 20px; /* Space below navbar */
+            margin-bottom: 30px; /* More space below navbar */
+        }
+        h2 {
+            color: #333; /* Darker color for better readability */
         }
         .question-container {
             display: none;
@@ -43,11 +46,33 @@ if (isset($_GET['id'])) {
         .question-container.active {
             display: block;
         }
-        .form-check-label {
-            margin-left: 10px; /* Space between radio and label */
-        }
         .button-container {
-            margin-top: 20px; /* Spacing above the button group */
+            margin-top: 30px; /* Spacing above the button group */
+        }
+        .form-check {
+            margin-bottom: 15px; /* Space between options */
+        }
+        .form-check-input {
+            display: none; /* Hide the default radio button */
+        }
+        .btn-option {
+            width: 100%; /* Full width buttons */
+            text-align: left; /* Left align text */
+            border: 2px solid #007bff; /* Default border */
+            transition: background-color 0.3s, border-color 0.3s; /* Smooth transition */
+        }
+        .form-check-input:checked + .btn-option {
+            background-color: #007bff; /* Bootstrap primary color */
+            color: white; /* Text color for selected option */
+            border-color: #007bff; /* Border color for selected option */
+        }
+        .btn-option:hover {
+            background-color: #f8f9fa; /* Light background on hover */
+            border-color: #0056b3; /* Darker border on hover */
+        }
+        .btn-option:focus {
+            outline: none; /* Remove default focus outline */
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Custom focus outline */
         }
     </style>
 </head>
@@ -79,12 +104,13 @@ if (isset($_GET['id'])) {
 
             foreach ($questions as $index => $row) {
                 echo "<div class='form-group question-container' id='question_$index'>";
-                echo "<label class='font-weight-bold'>" . $row['question_text'] . "</label>";
+                echo "<label class='font-weight-bold'>Question " . ($index + 1) . ": " . $row['question_text'] . "</label>";
                 $options = explode(',', $row['options']); // Assuming options are comma-separated
                 foreach ($options as $option) {
+                    // Each option is a button
                     echo "<div class='form-check'>";
-                    echo "<input class='form-check-input' type='radio' name='question_" . $row['id'] . "' value='" . trim($option) . "' required>";
-                    echo "<label class='form-check-label'>" . trim($option) . "</label>";
+                    echo "<input class='form-check-input' type='radio' name='question_" . $row['id'] . "' id='option_" . $row['id'] . "_" . trim($option) . "' value='" . trim($option) . "' required>";
+                    echo "<label class='btn btn-option' for='option_" . $row['id'] . "_" . trim($option) . "'>" . trim($option) . "</label>";
                     echo "</div>";
                 }
                 echo "</div>";
@@ -132,7 +158,7 @@ if (isset($_GET['id'])) {
                 showQuestion(currentQuestion);
             </script>";
         } else {
-            echo "<p>No questions available for this exam.</p>";
+            echo "<p class='text-danger'>No questions available for this exam.</p>";
         }
         ?>
     </form>
