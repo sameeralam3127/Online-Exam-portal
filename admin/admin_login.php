@@ -46,11 +46,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <title>Admin Login</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 400px;
+            margin-top: 100px;
+        }
+        .error-message {
+            color: red;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
+    <div class="container">
         <h2>Admin Login</h2>
-        <?php if ($error_message) { echo "<div class='alert alert-danger'>$error_message</div>"; } ?>
+        <?php if (!empty($error_message)) : ?>
+            <div class="alert alert-danger"><?php echo htmlspecialchars($error_message); ?></div>
+        <?php endif; ?>
         <form action="" method="post">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
@@ -63,5 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn btn-primary">Login</button>
         </form>
     </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

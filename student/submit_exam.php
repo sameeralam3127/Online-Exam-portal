@@ -13,54 +13,63 @@ $correct_answers = [];
 $wrong_answers = [];
 $score = 0;
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $exam_id = $_POST['exam_id'];
-    $user_id = $_SESSION['user_id'];
+// Check if exam has already been submitted in the current session
+if (!isset($_SESSION['exam_submitted'])) {
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $exam_id = $_POST['exam_id'];
+        $user_id = $_SESSION['user_id'];
 
-    // Fetch questions for the exam
-    $sql = "SELECT * FROM questions WHERE exam_id=$exam_id";
-    $result = $conn->query($sql);
+        // Fetch questions for the exam
+        $sql = "SELECT * FROM questions WHERE exam_id=$exam_id";
+        $result = $conn->query($sql);
 
-    while ($row = $result->fetch_assoc()) {
-        $correct_answer = $row['correct_answer'];
-        $question_id = $row['id'];
+        while ($row = $result->fetch_assoc()) {
+            $correct_answer = $row['correct_answer'];
+            $question_id = $row['id'];
 
-        // Check if the answer exists in the POST data
-        if (isset($_POST['question_' . $question_id])) {
-            $user_answer = $_POST['question_' . $question_id];
+            // Check if the answer exists in the POST data
+            if (isset($_POST['question_' . $question_id])) {
+                $user_answer = $_POST['question_' . $question_id];
 
-            // Store correct and wrong answers
-            if ($user_answer == $correct_answer) {
-                $score++;
-                $correct_answers[] = [
-                    'question' => $row['question_text'],
-                    'user_answer' => $user_answer,
-                    'correct_answer' => $correct_answer
-                ];
+                // Store correct and wrong answers
+                if ($user_answer == $correct_answer) {
+                    $score++;
+                    $correct_answers[] = [
+                        'question' => $row['question_text'],
+                        'user_answer' => $user_answer,
+                        'correct_answer' => $correct_answer
+                    ];
+                } else {
+                    $wrong_answers[] = [
+                        'question' => $row['question_text'],
+                        'user_answer' => $user_answer,
+                        'correct_answer' => $correct_answer
+                    ];
+                }
             } else {
+                // Handle unanswered questions
                 $wrong_answers[] = [
                     'question' => $row['question_text'],
-                    'user_answer' => $user_answer,
+                    'user_answer' => 'No answer',
                     'correct_answer' => $correct_answer
                 ];
             }
+        }
+
+        // Save the result
+        $sql = "INSERT INTO results (user_id, exam_id, score) VALUES ($user_id, $exam_id, $score)";
+        if ($conn->query($sql) === TRUE) {
+            // Set session variable to indicate exam has been submitted
+            $_SESSION['exam_submitted'] = true;
+
+            echo "<div class='alert alert-success'>Exam submitted successfully! Your score: " . $score . "</div>";
         } else {
-            // Handle unanswered questions
-            $wrong_answers[] = [
-                'question' => $row['question_text'],
-                'user_answer' => 'No answer',
-                'correct_answer' => $correct_answer
-            ];
+            echo "<div class='alert alert-danger'>Error: " . $conn->error . "</div>";
         }
     }
-
-    // Save the result
-    $sql = "INSERT INTO results (user_id, exam_id, score) VALUES ($user_id, $exam_id, $score)";
-    if ($conn->query($sql) === TRUE) {
-        echo "<div class='alert alert-success'>Exam submitted successfully! Your score: " . $score . "</div>";
-    } else {
-        echo "<div class='alert alert-danger'>Error: " . $conn->error . "</div>";
-    }
+} else {
+    // Prevent form submission if exam has already been submitted
+    echo "<div class='alert alert-warning'>You have already submitted this exam, Kindly logout and submit the Exam.</div>";
 }
 
 // Fetch attempt history
@@ -93,6 +102,23 @@ $history_results = $conn->query($sql_history);
     </style>
 </head>
 <body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="dashboard.php">Online Exam Portal</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="dashboard.php">Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="logout.php">Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
 <div class="container mt-5">
     <h2>Your Exam Results</h2>
 
@@ -152,8 +178,11 @@ $history_results = $conn->query($sql_history);
         </tbody>
     </table>
     
-    <a href="dashboard.php" class="btn btn-secondary mt-3">Back to Dashboard</a>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
 
