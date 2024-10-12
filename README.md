@@ -1,6 +1,3 @@
-### Complete `README.md` with SQL Script
-
-```markdown
 # Online Exam Portal
 
 Welcome to the Online Exam Portal! This web application allows students to register, take exams, and view their results. Administrators can manage questions and view student records.
