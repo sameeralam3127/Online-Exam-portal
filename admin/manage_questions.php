@@ -8,22 +8,36 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
-// Prepare and bind for adding questions
-$stmt = $conn->prepare("INSERT INTO questions (exam_id, question_text, options, correct_answer) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("isss", $exam_id, $question_text, $options, $correct_answer);
-
 // Handle adding a new question
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] == 'add') {
+    // Collect data from the form
     $exam_id = $_POST['exam_id'];
     $question_text = $_POST['question_text'];
-    $options = $_POST['options']; // Comma-separated
+    $options = $_POST['options']; // Comma-separated options
     $correct_answer = $_POST['correct_answer'];
 
-    if ($stmt->execute()) {
-        echo "<div class='alert alert-success'>Question added successfully!</div>";
-    } else {
-        echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
+    // Prepare and bind for adding questions
+    $stmt = $conn->prepare("INSERT INTO questions (exam_id, question, option_a, option_b, option_c, option_d, correct_option) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    
+    if ($stmt === false) {
+        die("Error preparing statement: " . $conn->error);
     }
+    
+    // Split options into separate variables
+    $optionsArray = explode(',', $options);
+    if (count($optionsArray) < 4) {
+        echo "<div class='alert alert-danger'>Please provide at least four options.</div>";
+    } else {
+        // Bind parameters, ensuring the correct types
+        $stmt->bind_param("isssss", $exam_id, $question_text, $optionsArray[0], $optionsArray[1], $optionsArray[2], $optionsArray[3], $correct_answer);
+        
+        if ($stmt->execute()) {
+            echo "<div class='alert alert-success'>Question added successfully!</div>";
+        } else {
+            echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
+        }
+    }
+    $stmt->close(); // Close the statement after executing
 }
 
 // Handle editing a question
@@ -35,15 +49,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
     $correct_answer = $_POST['correct_answer'];
 
     // Prepare statement for updating a question
-    $edit_stmt = $conn->prepare("UPDATE questions SET exam_id = ?, question_text = ?, options = ?, correct_answer = ? WHERE id = ?");
+    $edit_stmt = $conn->prepare("UPDATE questions SET exam_id = ?, question = ?, options = ?, correct_answer = ? WHERE id = ?");
+    if ($edit_stmt === false) {
+        die("Error preparing edit statement: " . $conn->error);
+    }
+    
     $edit_stmt->bind_param("isssi", $exam_id, $question_text, $options, $correct_answer, $question_id);
-
+    
     if ($edit_stmt->execute()) {
         echo "<div class='alert alert-success'>Question updated successfully!</div>";
     } else {
         echo "<div class='alert alert-danger'>Error: " . $edit_stmt->error . "</div>";
     }
-
     $edit_stmt->close();
 }
 
@@ -128,7 +145,7 @@ $questions = $conn->query($questions_sql);
                 <tr>
                     <td><?php echo htmlspecialchars($question['id']); ?></td>
                     <td><?php echo htmlspecialchars($question['exam_id']); ?></td>
-                    <td><?php echo htmlspecialchars($question['question_text']); ?></td>
+                    <td><?php echo htmlspecialchars($question['question']); ?></td>
                     <td><?php echo htmlspecialchars($question['options']); ?></td>
                     <td><?php echo htmlspecialchars($question['correct_answer']); ?></td>
                     <td>
@@ -148,6 +165,5 @@ $questions = $conn->query($questions_sql);
 </html>
 
 <?php
-$stmt->close();
 $conn->close();
 ?>

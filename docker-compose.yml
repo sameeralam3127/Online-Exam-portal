@@ -8,12 +8,12 @@ services:
     volumes:
       - .:/var/www/html
     environment:
-      DB_HOST: db          # Use service name 'db' to connect to MySQL container
-      DB_USER: root        # Database user (root)
-      DB_PASSWORD: root    # Password for root user
-      DB_NAME: online_exam_portal_db  # Database name
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: online_exam_portal_db
     depends_on:
-      - db  # Ensure the 'db' service starts before 'web'
+      - db
 
   db:
     image: mysql:5.7
@@ -23,6 +23,17 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db  # Connect to the 'db' service
+      MYSQL_ROOT_PASSWORD: root  # Root password for MySQL connection
+    depends_on:
+      - db
 
 volumes:
   db_data:

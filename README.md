@@ -116,36 +116,68 @@ git clone https://github.com/sameeralam3127/Online-Exam-portal.git
      http://localhost/online-exam-portal/
      ```
 
-### Running on a Linux System
+## Docker Setup
 
-1. **Install Apache, PHP, and MySQL**:
-   Make sure you have Apache, PHP, and MySQL installed. You can install them using:
+To run the Online Exam Portal using Docker, you can utilize the provided `Dockerfile` and `docker-compose.yml` files. Follow these steps:
+
+### Prerequisites
+
+- Install Docker and Docker Compose on your machine. Refer to the [official documentation](https://docs.docker.com/get-docker/) for installation instructions.
+
+### Setting Up Docker Environment
+
+1. **Clone the Repository**:
+   Ensure you have cloned the repository as mentioned earlier. If you haven't done this yet, run:
    ```bash
-   sudo apt update
-   sudo apt install apache2 php libapache2-mod-php mysql-server php-mysql
+   git clone https://github.com/sameeralam3127/Online-Exam-portal.git
    ```
 
-2. **Configure Apache**:
-   Place the project directory in the Apache root folder:
+2. **Navigate to the Project Directory**:
+   Change to the directory containing the cloned repository:
    ```bash
-   sudo mv Online-Exam-portal /var/www/html/
+   cd Online-Exam-portal
    ```
 
-3. **Set Permissions**:
-   Ensure that the Apache user can read the files:
+3. **Build and Run the Docker Containers**:
+   Use Docker Compose to build and run the application. Execute the following command in the terminal:
    ```bash
-   sudo chown -R www-data:www-data /var/www/html/Online-Exam-portal
-   sudo chmod -R 755 /var/www/html/Online-Exam-portal
+   docker-compose up --build
    ```
 
-4. **Create the Database**:
-   Follow the same steps as mentioned above in the "Create the Database" section.
+4. **Access the Application**:
+   - The web application will be available at: 
+     ```
+     http://localhost:8080
+     ```
+   - You can access phpMyAdmin at:
+     ```
+     http://localhost:8081
+     ```
+   Use the following credentials to log in:
+   - **Username**: `root`
+   - **Password**: `root`
 
-5. **Access the Application**:
-   Open your web browser and navigate to:
-   ```
-   http://localhost/Online-Exam-portal/
-   ```
+### Database Initialization
+
+The `docker-compose.yml` file includes an `init.sql` file that will automatically create the database and necessary tables when the MySQL container starts. This includes:
+
+- **Users Table**: For storing user credentials and roles.
+- **Exams Table**: For managing exam information.
+- **Questions Table**: For adding questions related to exams.
+- **Results Table**: For recording exam results associated with users.
+
+You don't need to manually create the database as it will be initialized automatically when you run the application.
+
+### Stopping the Application
+
+To stop the running containers, press `CTRL+C` in the terminal where the Docker containers are running. If you want to remove the containers after stopping, run:
+```bash
+docker-compose down
+```
+
+### Modifying the Application
+
+Any changes you make to the application files will be reflected immediately in the running Docker containers due to the volume mapping specified in `docker-compose.yml`.
 
 ## Contributing
 Contributions are welcome! If you have suggestions or improvements, please fork the repository and create a pull request.
@@ -154,3 +186,4 @@ Contributions are welcome! If you have suggestions or improvements, please fork 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
+
