@@ -2,6 +2,13 @@
 
 Welcome to the Online Exam Portal! This web application allows students to register, take exams, and view their results. Administrators can manage questions and view student records.
 
+![image](https://github.com/user-attachments/assets/7e671d57-e9c5-431e-95cd-a89039fa856f)
+![image](https://github.com/user-attachments/assets/de55604c-f213-4aa5-a7cb-a723427b0883)
+![image](https://github.com/user-attachments/assets/91406313-0890-4af1-bbcc-fdde3e0f3594)
+![image](https://github.com/user-attachments/assets/dfad6612-b389-4610-ba84-e7db9c885173)
+![image](https://github.com/user-attachments/assets/737fbe41-c00b-4276-81b6-1e2363e94c65)
+![image](https://github.com/user-attachments/assets/9b9cebcf-8658-4584-a239-d313818864e3)
+
 ## Features
 
 ### User Interface
