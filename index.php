@@ -8,7 +8,7 @@ include 'student/db.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Exam Portal</title>
+    <title>Exam Portal</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
@@ -101,7 +101,7 @@ include 'student/db.php';
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/admin_login.php">Feedback</a>
+                    <a class="nav-link" href="/online-exam-portal/admin/admin_login.php">Feedback</a>
                 </li>
             </ul>
         </div>

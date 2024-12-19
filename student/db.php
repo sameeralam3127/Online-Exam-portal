@@ -1,7 +1,7 @@
 <?php
-$servername = "db"; // Use the service name defined in docker-compose.yml
+$servername = "localhost"; // Use the service name defined in docker-compose.yml
 $username = "root"; // default username
-$password = "root"; // default password
+$password = ""; // default password
 $dbname = "online_exam_portal_db";
 
 // Create connection
