@@ -1,0 +1,16 @@
+body {
+    background-color: #f4f7fa;
+    font-family: 'Arial', sans-serif;
+}
+
+.card {
+    border-radius: 8px;
+}
+
+.navbar {
+    border-bottom: 2px solid #e9ecef;
+}
+
+.list-group-item:hover {
+    background-color: #f1f1f1;
+}
