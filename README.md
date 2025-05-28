@@ -206,7 +206,7 @@ Note: Place your screenshots in the `screenshots` folder and name them according
 2. **Installation**
    ```bash
    # Clone the repository
-   git clone <repository-url>
+   git clone https://github.com/sameeralam3127/Online-Exam-portal.git
    cd Online-Exam-portal
 
    # Create and activate virtual environment
