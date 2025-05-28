@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 app = Flask(__name__)
@@ -42,8 +42,8 @@ class Exam(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
-    questions = db.relationship('Question', backref='exam', lazy=True)
-    results = db.relationship('ExamResult', backref='exam', lazy=True)
+    questions = db.relationship('Question', backref='exam', lazy=True, cascade='all, delete-orphan')
+    results = db.relationship('ExamResult', backref='exam', lazy=True, cascade='all, delete-orphan')
 
 # Question Model
 class Question(db.Model):
@@ -60,20 +60,20 @@ class Question(db.Model):
 # Exam Result Model
 class ExamResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    exam_id = db.Column(db.Integer, db.ForeignKey('exam.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    exam_id = db.Column(db.Integer, db.ForeignKey('exam.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     score = db.Column(db.Integer)
     total_marks = db.Column(db.Integer)
     start_time = db.Column(db.DateTime, default=datetime.utcnow)
     end_time = db.Column(db.DateTime)
     is_passed = db.Column(db.Boolean)
-    answers = db.relationship('UserAnswer', backref='result', lazy=True)
+    answers = db.relationship('UserAnswer', backref='result', lazy=True, cascade='all, delete-orphan')
 
 # User Answer Model
 class UserAnswer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    result_id = db.Column(db.Integer, db.ForeignKey('exam_result.id'), nullable=False)
-    question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
+    result_id = db.Column(db.Integer, db.ForeignKey('exam_result.id', ondelete='CASCADE'), nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id', ondelete='CASCADE'), nullable=False)
     selected_answer = db.Column(db.String(1))  # 'A', 'B', 'C', or 'D'
     is_correct = db.Column(db.Boolean)
     question = db.relationship('Question', backref='user_answers')
@@ -178,12 +178,38 @@ def create_exam():
     
     return render_template('admin/create_exam.html')
 
-@app.route('/admin/users')
+@app.route('/admin/users', methods=['GET', 'POST'])
 @login_required
 def admin_users():
     if not current_user.is_admin:
         flash('Access denied')
         return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        is_admin = 'is_admin' in request.form
+        
+        # Check if username already exists
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists', 'danger')
+            return redirect(url_for('admin_users'))
+        
+        # Check if email already exists
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered', 'danger')
+            return redirect(url_for('admin_users'))
+        
+        # Create new user
+        user = User(username=username, email=email, is_admin=is_admin)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('User created successfully!', 'success')
+        return redirect(url_for('admin_users'))
+
     users = User.query.filter_by(is_admin=False).all()
     return render_template('admin/users.html', users=users)
 
@@ -194,15 +220,95 @@ def admin_reports():
         flash('Access denied. Admin privileges required.', 'danger')
         return redirect(url_for('dashboard'))
     
+    # Get filter parameters
+    exam_id = request.args.get('exam_id', type=int)
+    date_from = request.args.get('date_from')
+    date_to = request.args.get('date_to')
+    status = request.args.get('status')
+    
+    # Debug logging
+    print("Starting admin_reports route")
+    print(f"Filter parameters: exam_id={exam_id}, date_from={date_from}, date_to={date_to}, status={status}")
+    
+    # Base query with eager loading of relationships
+    query = ExamResult.query.join(User).join(Exam).options(
+        db.joinedload(ExamResult.student),
+        db.joinedload(ExamResult.exam),
+        db.joinedload(ExamResult.answers)
+    ).order_by(ExamResult.start_time.desc())
+    
+    # Apply filters
+    if exam_id:
+        query = query.filter(ExamResult.exam_id == exam_id)
+    
+    if date_from:
+        try:
+            date_from = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(ExamResult.start_time >= date_from)
+        except ValueError:
+            flash('Invalid date format for Date From', 'warning')
+    
+    if date_to:
+        try:
+            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+            # Add one day to include the entire day
+            date_to = date_to + timedelta(days=1)
+            query = query.filter(ExamResult.start_time < date_to)
+        except ValueError:
+            flash('Invalid date format for Date To', 'warning')
+    
+    if status:
+        if status == 'passed':
+            query = query.filter(ExamResult.is_passed == True)
+        elif status == 'failed':
+            query = query.filter(ExamResult.is_passed == False)
+    
     # Get all exams for the filter dropdown
-    exams = Exam.query.all()
+    exams = Exam.query.order_by(Exam.title).all()
+    print(f"Found {len(exams)} exams")
     
-    # Get all results with related data
-    results = ExamResult.query.join(User).join(Exam).all()
+    # Execute the query and get results
+    results = query.all()
+    print(f"Found {len(results)} results")
     
-    return render_template('admin/reports.html', 
+    # Debug: Print each result
+    for result in results:
+        print(f"Result: Student={result.student.username}, Exam={result.exam.title}, Score={result.score}")
+    
+    # Calculate statistics
+    total_results = len(results)
+    if total_results > 0:
+        passed_results = sum(1 for r in results if r.is_passed)
+        pass_rate = (passed_results / total_results) * 100
+        
+        total_score_percentage = sum((r.score / r.total_marks) * 100 for r in results)
+        avg_score = total_score_percentage / total_results
+        
+        unique_students = len(set(r.user_id for r in results))
+    else:
+        pass_rate = 0
+        avg_score = 0
+        unique_students = 0
+    
+    stats = {
+        'total_results': total_results,
+        'pass_rate': round(pass_rate, 1),
+        'avg_score': round(avg_score, 1),
+        'unique_students': unique_students
+    }
+    
+    print("Stats:", stats)
+    
+    return render_template('admin/reports.html',
                          exams=exams,
-                         results=results)
+                         results=results,
+                         stats=stats,
+                         filters={
+                             'exam_id': exam_id,
+                             'date_from': date_from,
+                             'date_to': date_to,
+                             'status': status
+                         })
 
 @app.route('/logout')
 @login_required
@@ -244,9 +350,17 @@ def delete_exam(exam_id):
         return redirect(url_for('dashboard'))
     
     exam = Exam.query.get_or_404(exam_id)
-    db.session.delete(exam)
-    db.session.commit()
-    flash('Exam deleted successfully!', 'success')
+    
+    try:
+        # This will automatically delete related questions and results due to cascade
+        db.session.delete(exam)
+        db.session.commit()
+        flash('Exam deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting exam. Please try again.', 'danger')
+        print(f"Error deleting exam: {str(e)}")
+    
     return redirect(url_for('admin_exams'))
 
 @app.route('/exam/<int:exam_id>/start', methods=['GET', 'POST'])
@@ -444,34 +558,165 @@ def view_result(result_id):
     
     return render_template('student/view_result.html', result=result)
 
-def create_admin_user():
-    with app.app_context():
-        if not User.query.filter_by(username='admin').first():
-            admin = User(username='admin', email='admin@example.com', is_admin=True)
-            admin.set_password('admin123')
-            db.session.add(admin)
-            db.session.commit()
-            print("Admin user created successfully!")
+# Create sample data function
+def create_sample_data():
+    print("Creating admin user...")
+    # Create admin user if not exists
+    admin = User.query.filter_by(username='admin').first()
+    if not admin:
+        admin = User(
+            username='admin',
+            email='admin@example.com',
+            is_admin=True
+        )
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
+        print("Admin user created successfully!")
+    else:
+        print("Admin user already exists")
 
-def create_sample_questions():
+    print("Creating sample exam...")
     # Create a sample exam if it doesn't exist
     exam = Exam.query.filter_by(title="Computer Science Fundamentals").first()
     if not exam:
         exam = Exam(
             title="Computer Science Fundamentals",
-            description="A comprehensive test covering fundamental computer science concepts including algorithms, data structures, programming, and computer architecture.",
-            duration=60,  # 60 minutes
+            description="A comprehensive test covering fundamental computer science concepts.",
+            duration=60,
             total_marks=100,
             passing_marks=60,
-            created_by=1,  # Assuming admin user has ID 1
+            created_by=admin.id,
             is_active=True
         )
         db.session.add(exam)
         db.session.commit()
+        print("Sample exam created successfully!")
+
+        # Add sample questions
+        questions = [
+            Question(
+                exam_id=exam.id,
+                question_text="What is the time complexity of binary search?",
+                option_a="O(1)",
+                option_b="O(log n)",
+                option_c="O(n)",
+                option_d="O(n^2)",
+                correct_answer="B",
+                marks=10
+            ),
+            Question(
+                exam_id=exam.id,
+                question_text="Which data structure uses LIFO principle?",
+                option_a="Queue",
+                option_b="Stack",
+                option_c="Tree",
+                option_d="Graph",
+                correct_answer="B",
+                marks=10
+            )
+        ]
+        db.session.add_all(questions)
+        db.session.commit()
+        print("Sample questions added successfully!")
+    else:
+        print("Sample exam already exists")
+
+    print("Creating sample students...")
+    # Create sample students
+    students = []
+    for i in range(1, 4):  # Create 3 sample students
+        username = f"student{i}"
+        student = User.query.filter_by(username=username).first()
+        if not student:
+            student = User(
+                username=username,
+                email=f"{username}@example.com",
+                is_admin=False
+            )
+            student.set_password('student123')
+            students.append(student)
+            print(f"Created student: {username}")
+    
+    if students:
+        db.session.add_all(students)
+        db.session.commit()
+        print("Sample students created successfully!")
+
+    print("Creating sample exam results...")
+    # Create sample exam results
+    current_time = datetime.utcnow()
+    
+    # Get all students (including existing ones)
+    all_students = User.query.filter_by(is_admin=False).all()
+    
+    for student in all_students:
+        # Create two results for each student
+        results = []
+        
+        # Passed attempt
+        if not ExamResult.query.filter_by(user_id=student.id, score=80).first():
+            results.append(ExamResult(
+                exam_id=exam.id,
+                user_id=student.id,
+                score=80,
+                total_marks=100,
+                start_time=current_time - timedelta(days=1),
+                end_time=current_time - timedelta(days=1, minutes=45),
+                is_passed=True
+            ))
+        
+        # Failed attempt
+        if not ExamResult.query.filter_by(user_id=student.id, score=50).first():
+            results.append(ExamResult(
+                exam_id=exam.id,
+                user_id=student.id,
+                score=50,
+                total_marks=100,
+                start_time=current_time - timedelta(hours=2),
+                end_time=current_time - timedelta(hours=1),
+                is_passed=False
+            ))
+        
+        if results:
+            db.session.add_all(results)
+            db.session.commit()
+            print(f"Created exam results for {student.username}")
+    
+    print("Sample data creation completed!")
+
+    # Print summary of created data
+    print("\nData Creation Summary:")
+    print(f"Total Users: {User.query.count()}")
+    print(f"Total Exams: {Exam.query.count()}")
+    print(f"Total Questions: {Question.query.count()}")
+    print(f"Total Results: {ExamResult.query.count()}")
 
 if __name__ == '__main__':
+    # Delete the existing database file if it exists
+    if os.path.exists('exam_portal.db'):
+        os.remove('exam_portal.db')
+        print("Existing database removed.")
+    
     with app.app_context():
+        print("Creating database tables...")
         db.create_all()
-        create_admin_user()
-        create_sample_questions()
-    app.run(debug=True) 
+        print("Database tables created successfully!")
+        
+        print("Creating sample data...")
+        create_sample_data()
+        print("Sample data creation completed!")
+    
+    # Try different ports if 5001 is in use
+    ports = [5001, 5002, 5003, 5004, 5005]
+    
+    for port in ports:
+        try:
+            print(f"Attempting to start server on port {port}")
+            app.run(debug=True, port=port)
+            break
+        except OSError as e:
+            print(f"Port {port} is in use, trying next port...")
+            if port == ports[-1]:
+                print("All ports are in use. Please free up a port and try again.")
+                raise e 
